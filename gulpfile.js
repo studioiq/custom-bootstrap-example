@@ -1,41 +1,44 @@
 var gulp = require('gulp');
 var sass = require('gulp-sass');
 var sourcemaps = require('gulp-sourcemaps');
-var uglify = require('gulp-uglifyjs');
+var pump = require('pump');
 
 var config = {
-  bowerDir: './bower_components',
-  publicDir: './public',
+	nodeModulesDir: './node_modules',
+	publicDir: './public',
 };
 
-gulp.task('fonts', function() {
-  return gulp.src([
-    config.bowerDir + '/bootstrap-sass/assets/fonts/**/*',
-  ])
-  .pipe(gulp.dest(config.publicDir + '/fonts'));
+gulp.task('fonts', function(callback) {
+	pump([
+			gulp.src([
+				config.nodeModulesDir + '/bootstrap-sass/assets/fonts/**/*',
+			]),
+			gulp.dest(config.publicDir + '/fonts')
+		], callback);
 });
 
-gulp.task('js', function() {
-  return gulp.src([
-    config.bowerDir + '/jquery/dist/jquery.min.js',
-    config.bowerDir + '/bootstrap-sass/assets/javascripts/bootstrap.js',
-  ])
-  .pipe(uglify('app.js', {
-    compress: false,
-    outSourceMap: true,
-  }))
-  .pipe(gulp.dest(config.publicDir + '/js'));
+gulp.task('js', function(callback) {
+	pump([
+		gulp.src([
+			config.nodeModulesDir + '/jquery/dist/jquery.min.js',
+			config.nodeModulesDir + '/bootstrap-sass/assets/javascripts/bootstrap.min.js',
+			config.nodeModulesDir + '/holderjs/holder.min.js',
+		]),
+		gulp.dest(config.publicDir + '/js')
+	], callback);
 });
 
-gulp.task('css', function() {
-  return gulp.src('css/app.scss')
-  .pipe(sourcemaps.init())
-  .pipe(sass({
-    outputStyle: 'compressed',
-    includePaths: [config.bowerDir + '/bootstrap-sass/assets/stylesheets'],
-  }))
-  .pipe(sourcemaps.write())
-  .pipe(gulp.dest(config.publicDir + '/css'));
+gulp.task('css', function(callback) {
+	pump([
+		gulp.src('css/app.scss'),
+		sourcemaps.init(),
+		sass({
+			outputStyle: 'compressed',
+			includePaths: [config.nodeModulesDir + '/bootstrap-sass/assets/stylesheets'],
+		}),
+		sourcemaps.write(),
+		gulp.dest(config.publicDir + '/css')
+	], callback);
 });
 
 gulp.task('default', ['css', 'js', 'fonts']);
